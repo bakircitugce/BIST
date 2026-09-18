@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seans Defteri — Sektör &amp; Hisse Analiz Terminali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d10;
+  --bg-alt:#0e1216;
+  --panel:#11161b;
+  --panel-2:#151b21;
+  --line:#232b31;
+  --line-soft:#1a2126;
+  --ink:#e7e4da;
+  --ink-dim:#9aa3a8;
+  --ink-faint:#616b70;
+  --gold:#c9a04a;
+  --gold-soft:#8a7238;
+  --green:#5fa87c;
+  --red:#c1594f;
+  --amber-glow: rgba(201,160,74,0.14);
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#0a0d10; --bg-alt:#0e1216; --panel:#11161b; --panel-2:#151b21;
+    --line:#232b31; --line-soft:#1a2126; --ink:#e7e4da; --ink-dim:#9aa3a8;
+    --ink-faint:#616b70; --gold:#c9a04a; --gold-soft:#8a7238; --green:#5fa87c; --red:#c1594f;
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.mono{font-family:'IBM Plex Mono', ui-monospace, monospace;}
+
+/* ---------- Header ---------- */
+header.topbar{
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, var(--bg-alt), var(--bg));
+  padding:18px 22px 16px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.brand{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+.brand .mark{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  letter-spacing:.14em;
+  color:var(--gold);
+  border:1px solid var(--gold-soft);
+  padding:3px 8px;
+  border-radius:2px;
+}
+.brand h1{
+  font-size:20px;
+  font-weight:600;
+  margin:0;
+  letter-spacing:.01em;
+}
+.brand .sub{
+  color:var(--ink-faint);
+  font-size:12.5px;
+  margin-top:2px;
+}
+.lockbar{display:flex; align-items:center; gap:10px;}
+.lock-pill{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:12px;
+  padding:7px 12px;
+  border-radius:3px;
+  border:1px solid var(--line);
+  color:var(--ink-dim);
+  display:flex; align-items:center; gap:7px;
+  background:var(--panel);
+}
+.lock-pill.unlocked{ color:var(--green); border-color:#2f4a3c; background:rgba(95,168,124,0.08); }
+.lock-pill .dot{width:6px;height:6px;border-radius:50%; background:var(--ink-faint);}
+.lock-pill.unlocked .dot{background:var(--green); box-shadow:0 0 6px var(--green);}
+.btn{
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:12.5px;
+  font-weight:600;
+  padding:8px 14px;
+  border-radius:3px;
+  border:1px solid var(--line);
+  background:var(--panel-2);
+  color:var(--ink);
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+  white-space:nowrap;
+}
+.btn:hover{border-color:var(--gold-soft); background:#171e24;}
+.btn.primary{
+  background:var(--gold);
+  color:#1a1406;
+  border-color:var(--gold);
+}
+.btn.primary:hover{ background:#d9ae57; }
+.btn.ghost{ background:transparent; }
+.btn.danger{ color:var(--red); border-color:#4a2b28; }
+.btn.danger:hover{ background:rgba(193,89,79,0.1); }
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+
+/* ---------- Disclaimer ---------- */
+.disclaimer{
+  background:#100a06;
+  border-bottom:1px solid #2a1f10;
+  color:#b99a63;
+  font-size:11.5px;
+  line-height:1.5;
+  padding:8px 22px;
+  text-align:center;
+}
+
+/* ---------- Layout ---------- */
+.layout{
+  flex:1;
+  display:grid;
+  grid-template-columns:280px 1fr;
+  min-height:0;
+}
+@media (max-width: 860px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{border-right:none; border-bottom:1px solid var(--line); max-height:340px;}
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  border-right:1px solid var(--line);
+  background:var(--bg-alt);
+  overflow-y:auto;
+  padding:14px 10px 30px;
+}
+.search-wrap{ padding:2px 6px 12px; position:sticky; top:0; background:var(--bg-alt); z-index:2;}
+.search-wrap input{
+  width:100%;
+  background:var(--panel);
+  border:1px solid var(--line);
+  color:var(--ink);
+  padding:9px 11px;
+  border-radius:3px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  outline:none;
+}
+.search-wrap input:focus{ border-color:var(--gold-soft); }
+.search-wrap input::placeholder{ color:var(--ink-faint); }
+.sort-toggle{ display:flex; gap:6px; margin-top:8px; }
+.sort-btn{
+  flex:1; background:var(--panel); border:1px solid var(--line); color:var(--ink-faint);
+  font-size:11px; padding:6px 4px; border-radius:3px; cursor:pointer;
+  font-family:'IBM Plex Sans', sans-serif;
+}
+.sort-btn:hover{ color:var(--ink); border-color:var(--gold-soft); }
+.sort-btn.active{ color:var(--gold); border-color:var(--gold-soft); background:var(--amber-glow); }
+.auto-tv-toggle{
+  display:flex; align-items:center; gap:7px; margin-top:10px;
+  font-size:11px; color:var(--ink-faint); cursor:pointer; user-select:none;
+}
+.auto-tv-toggle input{ accent-color:var(--gold); cursor:pointer; }
+.auto-tv-toggle:hover{ color:var(--ink-dim); }
+
+.sector-group{ margin-bottom:4px; }
+.sector-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:9px 8px 9px 6px;
+  cursor:pointer;
+  color:var(--ink-dim);
+  font-size:12px;
+  letter-spacing:.04em;
+  border-bottom:1px solid var(--line-soft);
+  user-select:none;
+}
+.sector-head:hover{ color:var(--ink); }
+.sector-head .count{ font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); font-size:11px;}
+.sector-head .chev{ transition:transform .15s; color:var(--ink-faint); font-size:10px;}
+.sector-group.collapsed .chev{ transform:rotate(-90deg); }
+.ticker-list{ padding:4px 0 10px; }
+.sector-group.collapsed .ticker-list{ display:none; }
+.ticker-item{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 10px 7px 16px;
+  cursor:pointer;
+  border-radius:3px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  color:var(--ink-dim);
+}
+.ticker-item:hover{ background:var(--panel); color:var(--ink); }
+.ticker-item.active{ background:var(--amber-glow); color:var(--gold); }
+.ticker-item .px{ font-size:11px; color:var(--ink-faint); }
+.ticker-item.active .px{ color:var(--gold-soft); }
+.ti-left{ cursor:pointer; flex:1; display:flex; align-items:center; gap:6px; }
+.ti-sector{ font-size:9.5px; color:var(--ink-faint); font-family:'IBM Plex Sans',sans-serif; }
+.ti-right{ display:flex; align-items:center; gap:8px; }
+.badge.mini{ min-width:24px; padding:1px 5px; font-size:11px; }
+.tv-mini{
+  color:var(--ink-faint); text-decoration:none; font-size:12px;
+  border:1px solid transparent; border-radius:3px; padding:1px 4px;
+}
+.tv-mini:hover{ color:var(--gold); border-color:var(--gold-soft); background:var(--amber-glow); }
+.no-results{ padding:16px 10px; color:var(--ink-faint); font-size:12.5px; }
+
+/* ---------- Main ---------- */
+main{ padding:24px 30px 60px; overflow-y:auto; }
+.empty-state{
+  height:60vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  color:var(--ink-faint); text-align:center; gap:8px;
+}
+.empty-state .big{ font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--ink-dim); }
+
+.ticker-header{
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:18px; flex-wrap:wrap;
+  padding-bottom:18px; margin-bottom:20px;
+  border-bottom:1px solid var(--line);
+}
+.ticker-title{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+.ticker-title h2{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:28px; font-weight:600; margin:0; letter-spacing:.01em;
+}
+.ticker-title .sektor-tag{
+  font-size:11.5px; color:var(--ink-faint);
+  border:1px solid var(--line); border-radius:2px; padding:3px 8px;
+}
+.tv-btn{
+  align-self:center;
+  font-size:11.5px;
+  padding:6px 12px;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+.ticker-stats{ display:flex; gap:22px; flex-wrap:wrap; }
+.stat{ text-align:right; }
+.stat .label{ font-size:10.5px; color:var(--ink-faint); margin-bottom:3px; }
+.stat .value{ font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; }
+.badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono',monospace;
+  min-width:30px; padding:3px 7px;
+  border-radius:3px; font-size:13px; font-weight:600;
+  border:1px solid var(--line);
+}
+.badge.score-3{ color:#0d130f; background:var(--green); border-color:var(--green); }
+.badge.score-2p{ color:var(--green); border-color:#2f4a3c; background:rgba(95,168,124,.12);}
+.badge.score-2{ color:var(--gold); border-color:var(--gold-soft); background:var(--amber-glow); }
+.badge.score-1{ color:var(--red); border-color:#4a2b28; background:rgba(193,89,79,.10);}
+.badge.score-dash{ color:var(--ink-faint); border-color:var(--line); }
+.editable-tag{ color:var(--gold-soft); font-size:9.5px; font-style:italic; }
+.quick-score-select{
+  font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600;
+  padding:5px 8px; border-radius:3px; cursor:pointer;
+  background:var(--panel); color:var(--ink); border:1px solid var(--line);
+}
+.quick-score-select.score-3{ color:var(--green); border-color:#2f4a3c; }
+.quick-score-select.score-2p{ color:var(--green); border-color:#2f4a3c; }
+.quick-score-select.score-2{ color:var(--gold); border-color:var(--gold-soft); }
+.quick-score-select.score-1{ color:var(--red); border-color:#4a2b28; }
+
+.section-title-row{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+}
+.section-title-row h3{
+  font-size:12.5px; text-transform:none; color:var(--ink-dim); margin:0; font-weight:600;
+  letter-spacing:.02em;
+}
+
+.timeline{ position:relative; padding-left:2px; }
+.entry{
+  position:relative;
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:4px;
+  padding:16px 18px;
+  margin-bottom:14px;
+}
+.entry.newest{ border-color:var(--gold-soft); box-shadow:0 0 0 1px rgba(201,160,74,.08) inset; }
+.entry-head{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  margin-bottom:9px;
+}
+.entry-head .left{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.entry-date{ font-family:'IBM Plex Mono',monospace; color:var(--ink); font-size:13.5px; font-weight:600;}
+.entry-price{ font-family:'IBM Plex Mono',monospace; color:var(--ink-dim); font-size:13px;}
+.entry-actions{ display:flex; gap:6px; }
+.icon-btn{
+  background:transparent; border:1px solid var(--line); color:var(--ink-faint);
+  width:26px; height:26px; border-radius:3px; cursor:pointer; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+.icon-btn:hover{ color:var(--gold); border-color:var(--gold-soft); }
+.icon-btn.del:hover{ color:var(--red); border-color:#4a2b28; }
+.entry-comment{ color:var(--ink); font-size:14px; line-height:1.65; white-space:pre-wrap; }
+.entry-comment.empty{ color:var(--ink-faint); font-style:italic; }
+.entry-foot{ margin-top:10px; }
+.tg-link{
+  font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--gold-soft);
+  text-decoration:none; border-bottom:1px dotted var(--gold-soft);
+}
+.tg-link:hover{ color:var(--gold); }
+
+.add-entry-btn{ margin-bottom:16px; }
+
+/* edit form */
+.edit-form{ display:flex; flex-direction:column; gap:10px; }
+.edit-form .row{ display:flex; gap:10px; flex-wrap:wrap; }
+.edit-form label{ font-size:11px; color:var(--ink-faint); display:block; margin-bottom:4px; }
+.edit-form input, .edit-form select, .edit-form textarea{
+  background:var(--bg-alt); border:1px solid var(--line); color:var(--ink);
+  padding:8px 10px; border-radius:3px; font-family:'IBM Plex Sans',sans-serif; font-size:13px;
+  width:100%; outline:none;
+}
+.edit-form input:focus, .edit-form select:focus, .edit-form textarea:focus{ border-color:var(--gold-soft); }
+.edit-form textarea{ min-height:80px; resize:vertical; font-family:'IBM Plex Sans',sans-serif; }
+.edit-form .field{ flex:1; min-width:120px; }
+.edit-form .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:2px; }
+
+/* ---------- Modal ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(5,6,7,.72);
+  display:flex; align-items:center; justify-content:center; z-index:50;
+  padding:20px;
+}
+.overlay[hidden]{ display:none; }
+.modal{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:6px;
+  width:100%; max-width:360px; padding:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.modal.wide{ max-width:520px; }
+.modal h3{ margin:0 0 4px; font-size:15px; }
+.modal p.hint{ color:var(--ink-faint); font-size:12px; margin:0 0 16px; }
+.modal input[type=password], .modal input[type=text]{
+  width:100%; background:var(--bg-alt); border:1px solid var(--line); color:var(--ink);
+  padding:10px 12px; border-radius:3px; font-family:'IBM Plex Mono',monospace; font-size:16px;
+  letter-spacing:.2em; text-align:center; outline:none;
+}
+.modal input:focus{ border-color:var(--gold-soft); }
+.modal .err{ color:var(--red); font-size:12px; margin-top:8px; min-height:14px; }
+.modal .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--panel-2); border:1px solid var(--gold-soft); color:var(--ink);
+  padding:10px 18px; border-radius:4px; font-size:13px; z-index:60;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.toast.err{ border-color:#4a2b28; color:#e3a49e; }
+
+footer.legal{
+  border-top:1px solid var(--line);
+  padding:10px 22px;
+  color:var(--ink-faint);
+  font-size:10.5px;
+  text-align:center;
+  background:var(--bg-alt);
+}
+::-webkit-scrollbar{ width:9px; height:9px; }
+::-webkit-scrollbar-track{ background:var(--bg-alt); }
+::-webkit-scrollbar-thumb{ background:#242c32; border-radius:5px; }
+::-webkit-scrollbar-thumb:hover{ background:#2e383f; }
+</style>
+</head>
+<body>
+
+<div class="disclaimer">Yasal Uyarı: Bu içerikte yer alan bilgi, yorum, analiz ve değerlendirmeler yalnızca eğitim amaçlı paylaşılmaktadır. Hiçbir şekilde alım, satım veya tutma yönünde bir yatırım tavsiyesi niteliği taşımaz.</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">SEANS&nbsp;DEFTERİ</span>
+    <div>
+      <h1>Sektör &amp; Hisse Analiz Terminali</h1>
+      <div class="sub" id="stockCountSub">— hisse takip listesi</div>
+    </div>
+  </div>
+  <div class="lockbar">
+    <span class="lock-pill" id="lockPill"><span class="dot"></span><span id="lockLabel">Görüntüleme Modu</span></span>
+    <button class="btn" id="lockBtn">Düzenlemeyi Aç</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Hisse kodu ara... (örn. AKBNK)" autocomplete="off">
+      <div class="sort-toggle">
+        <button class="sort-btn active" id="sortBySector">Sektöre Göre</button>
+        <button class="sort-btn" id="sortByScore">Puana Göre</button>
+      </div>
+      <label class="auto-tv-toggle">
+        <input type="checkbox" id="autoTvToggle" checked>
+        <span>Hisse seçince TradingView'i otomatik aç</span>
+      </label>
+    </div>
+    <div id="sectorList"></div>
+  </aside>
+
+  <main id="mainPanel">
+    <div class="empty-state">
+      <div class="big">Bir hisse seçin</div>
+      <div>Soldaki sektör listesinden bir hisse koduna tıklayarak tarihe göre yorum geçmişini görüntüleyin.</div>
+    </div>
+  </main>
+</div>
+
+<footer class="legal">Veriler eğitim amaçlı teknik değerlendirme notlarıdır · Fiyatlar ve puanlar ilgili tarihe aittir, güncel piyasa fiyatını yansıtmayabilir.</footer>
+
+<!-- Password modal -->
+<div class="overlay" id="pwOverlay" hidden>
+  <div class="modal">
+    <h3 id="pwModalTitle">Düzenleme Kilidini Aç</h3>
+    <p class="hint">Yorum eklemek veya güncellemek için şifreyi girin.</p>
+    <input type="password" id="pwInput" inputmode="numeric" maxlength="12" placeholder="••••">
+    <div class="err" id="pwErr"></div>
+    <div class="actions">
+      <button class="btn ghost" id="pwCancel">Vazgeç</button>
+      <button class="btn primary" id="pwSubmit">Kilidi Aç</button>
+    </div>
+  </div>
+</div>
+
+<!-- Entry edit/add modal -->
+<div class="overlay" id="entryOverlay" hidden>
+  <div class="modal wide">
+    <h3 id="entryModalTitle">Yeni Kayıt Ekle</h3>
+    <p class="hint" id="entryModalHint"></p>
+    <div class="edit-form">
+      <div class="row">
+        <div class="field">
+          <label>Tarih</label>
+          <input type="text" id="fDate" placeholder="örn. 20 Eylül">
+        </div>
+        <div class="field">
+          <label>Fiyat</label>
+          <input type="text" id="fPrice" placeholder="örn. 42,50">
+        </div>
+        <div class="field">
+          <label>Puan</label>
+          <select id="fScore">
+            <option value="3">3</option>
+            <option value="2+">2+</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+            <option value="-">-</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label>Yorum</label>
+        <textarea id="fComment" placeholder="Teknik değerlendirme notu..."></textarea>
+      </div>
+      <div>
+        <label>Telegram bağlantısı (opsiyonel)</label>
+        <input type="text" id="fTelegram" placeholder="https://t.me/...">
+      </div>
+      <div class="actions">
+        <button class="btn danger" id="fDelete" style="display:none; margin-right:auto;">Kaydı Sil</button>
+        <button class="btn ghost" id="fCancel">Vazgeç</button>
+        <button class="btn primary" id="fSave">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SEED_DATA = {"sectors": [{"name": "BANKA", "stocks": [{"symbol": "AKBNK", "entries": [{"tarih": "7 Eylul", "fiyat": "72,10", "puan": "2+", "yorum": "en dip degil ama destek sapmada. regresyon 1.7 gecmiste dip olarak calismis suan orada. Mayis 23 dip VWAPin %10 sapmasi destek olarak calismis, o bolgeye gore de poc-VWAP ikilisinden poc yukarida. EUR da Eylul 2010 dan HP atinca VWAPte.", "telegram": "https://t.me/c/1576483505/8/205684", "id": "s0_0_e0"}, {"tarih": "11 Mayis", "fiyat": "70,90", "puan": "2+", "yorum": "dip sapmaya yakin. 1.8 ile regresyon dibi daha once 2 kere calismis, suan o seviyeye yakin. haftalikta Kasimdan beri FYCG", "telegram": "https://t.me/c/1576483505/8/195755", "id": "s0_0_e1"}], "id": "s0_0"}, {"symbol": "ALBRK", "entries": [{"tarih": "7 Eylul", "fiyat": "8,76", "puan": 2, "yorum": null, "telegram": null, "id": "s0_1_e0"}, {"tarih": "11 Mayis", "fiyat": "8,36", "puan": "2+", "yorum": "belirli sapmalar arasinda hareket ediyor. regresyona gore dip bolgelerde degil. Mayis 23 ten itibaren dip VWAPini destek ala ala ilerlemis.Aralik 23 ten HP atinca 2 kere poc gelisimi gelmis. suanda da fiyat orada.", "telegram": "https://t.me/c/1576483505/18/195751", "id": "s0_1_e1"}], "id": "s0_1"}, {"symbol": "YKBNK", "entries": [{"tarih": "7 Eylul", "fiyat": "36,08", "puan": 3, "yorum": "1.8 regresyon dibi o civarin biraz asagisinda. Mayis 23 ten 2 kere poc gelisimi gelmis.", "telegram": "https://t.me/c/1576483505/276/205690", "id": "s0_2_e0"}, {"tarih": "11 Mayis", "fiyat": "35,94", "puan": 3, "yorum": "dip sapmada degil ancak hareket ettigi sapmalarin arasinda. 1.9 ile regresyon dibi civarinda. Mayis 23 dibi VWAP olarak calismis. oradan HP atinca poc gelisimi gelmis. haftalikta Araliktan itibaren FYCG", "telegram": "https://t.me/c/1576483505/276/195746", "id": "s0_2_e1"}], "id": "s0_2"}, {"symbol": "GARAN", "entries": [{"tarih": "7 Eylul", "fiyat": "132,4", "puan": 2, "yorum": "2.5 tepe regresyona gore bakildiginda fiyat o bolgeye temas etmemis", "telegram": "https://t.me/c/1576483505/260/205693", "id": "s0_3_e0"}, {"tarih": "11 Mayis", "fiyat": 129, "puan": 2, "yorum": "destek olan sapma dibinde. destek olabilecek regresyon dibinin de altina inmis. kasim 23 dibine gore 3 farkli seviyede hacim barlari mevcut.haftalikta Kasimdan itibaren CDV goruntusu", "telegram": "https://t.me/c/1576483505/260/195742", "id": "s0_3_e1"}], "id": "s0_3"}, {"symbol": "HALKB", "entries": [{"tarih": "7 Eylul", "fiyat": "49,44", "puan": "-", "yorum": null, "telegram": null, "id": "s0_4_e0"}, {"tarih": "11 Mayis", "fiyat": "36,26", "puan": "-", "yorum": null, "telegram": null, "id": "s0_4_e1"}], "id": "s0_4"}, {"symbol": "ICBCT", "entries": [{"tarih": "7 Eylul", "fiyat": "19,29", "puan": 2, "yorum": "regresyon orta kanalda.", "telegram": "https://t.me/c/1576483505/373/205696?single", "id": "s0_5_e0"}, {"tarih": "11 Mayis", "fiyat": "17,01", "puan": "2+", "yorum": "dip sapmasina gore %30 yukarida. regresyonda orta noktaya yaklasmis.CDV gunlukte hala dusus yonlu.haftalikta CDV goruntusu", "telegram": "https://t.me/c/1576483505/373/195737", "id": "s0_5_e1"}], "id": "s0_5"}, {"symbol": "ISCTR", "entries": [{"tarih": "7 Eylul", "fiyat": "13,00", "puan": 3, "yorum": "1.7 dip regresyonun asagisinda. 2.1 tepeye gore eslenik regresyon dibinde.gunluk ve haftalik CDV de son donemde dususler olmus.", "telegram": "https://t.me/c/1576483505/262/205700", "id": "s0_6_e0"}, {"tarih": "11 Mayis", "fiyat": "13,94", "puan": 3, "yorum": "sapma dibi civarinda. 2 ile regresyon dibinde. Mayis 23 VWAP-HP ikilisi. haftalikta FYCG", "telegram": "https://t.me/c/1576483505/262/195732", "id": "s0_6_e1"}], "id": "s0_6"}, {"symbol": "KLNMA", "entries": [{"tarih": "7 Eylul", "fiyat": "8,90", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/524/205702", "id": "s0_7_e0"}, {"tarih": "11 Mayis", "fiyat": "9,49", "puan": 3, "yorum": "sapma yada regresyon dibinde degil. poc gelisimi gelmis ve suan fiyat o seviyede.", "telegram": "https://t.me/c/1576483505/524/195727", "id": "s0_7_e1"}], "id": "s0_7"}, {"symbol": "QNBTR", "entries": [{"tarih": "7 Eylul", "fiyat": 186, "puan": "-", "yorum": null, "telegram": null, "id": "s0_8_e0"}, {"tarih": "11 Mayis", "fiyat": 238, "puan": "-", "yorum": null, "telegram": null, "id": "s0_8_e1"}], "id": "s0_8"}, {"symbol": "SKBNK", "entries": [{"tarih": "7 Eylul", "fiyat": "6,31", "puan": "-", "yorum": "regresyon 2.1 dip tepe cok simetrik calismis son satista oradan gelmis. henuz dip olarak temasi yok.", "telegram": "https://t.me/c/1576483505/239/205662", "id": "s0_9_e0"}, {"tarih": "11 Mayis", "fiyat": "12,68", "puan": 1, "yorum": "artik degerli", "telegram": null, "id": "s0_9_e1"}], "id": "s0_9"}, {"symbol": "TSKB", "entries": [{"tarih": "7 Eylul", "fiyat": "11,08", "puan": "2+", "yorum": "Regresyon 2.1 ile subat 22 seviyesinde.", "telegram": "https://t.me/c/1576483505/263/205705", "id": "s0_10_e0"}, {"tarih": "11 Mayis", "fiyat": "11,62", "puan": "2+", "yorum": "destek sapmasinda. Mayis 23 VWAP=HP ikilisinden poc gelisimi gelmemis ama mevcut fiyat hacimli. 2.2 regresyon dibi fiyat bu seviyeye cok yakin.", "telegram": "https://t.me/c/1576483505/263/195723", "id": "s0_10_e1"}], "id": "s0_10"}, {"symbol": "VAKBN", "entries": [{"tarih": "7 Eylul", "fiyat": "33,70", "puan": 2, "yorum": null, "telegram": "https://t.me/c/1576483505/266/205708", "id": "s0_11_e0"}, {"tarih": "11 Mayis", "fiyat": "30,58", "puan": 2, "yorum": "hep ayni sapmalar arasinda gidip gelmis, suanda bu bolgelerin ortasinda.", "telegram": "https://t.me/c/1576483505/266/195720", "id": "s0_11_e1"}], "id": "s0_11"}]}, {"name": "CAM SERAMİK", "stocks": [{"symbol": "QUAGR", "entries": [{"tarih": "7 Eylul", "fiyat": "3,07", "puan": "2+", "yorum": "daha onceden dip olarak calismis sapmada. pocunun asagisina kadar cekilmis. 1.4-1.5 regresyon dibi olarak calismis, suan bolgelerin yakinlarinda. gunluk ve haftalik CDV.", "telegram": "https://t.me/c/1576483505/224/205709", "id": "s1_0_e0"}, {"tarih": "11 Mayis", "fiyat": "3,79", "puan": 2, "yorum": "gunlukte CDV artisi goruluyor. haftalikta CDV gorunumu. EUR da pocun asagi inmesi ve geri gelisimi dikkat cekiyor.", "telegram": "https://t.me/c/1576483505/224/195923", "id": "s1_0_e1"}], "id": "s1_0"}, {"symbol": "EGSER", "entries": [{"tarih": "7 Eylul", "fiyat": "2,89", "puan": "2+", "yorum": "regresyona gore net bir destek belirleyemedim, tepeye gore 1.8 dusunulurse oraya temasi yok. 2023 tepesine gore pocu tepede kalmis. CDV ye gore golden cross gelmis.", "telegram": "https://t.me/c/1576483505/84/206308", "id": "s1_1_e0"}, {"tarih": "11 Mayis", "fiyat": "3,18", "puan": "2+", "yorum": "regresyona gore belirli bir dipte degil. poc son tepeye gore hala tepede.", "telegram": "https://t.me/c/1576483505/84/195918", "id": "s1_1_e1"}], "id": "s1_1"}, {"symbol": "KUTPO", "entries": [{"tarih": "7 Eylul", "fiyat": "78,20", "puan": 3, "yorum": "1.4 regresyon dip tepe gecmiste cok iyi calismis, suan oraya temasi yok ama yaklasmis. 2024 tepesine gore pocunda.", "telegram": "https://t.me/c/1576483505/397/206312", "id": "s1_2_e0"}, {"tarih": "11 Mayis", "fiyat": "97,80", "puan": 3, "yorum": "regresyona gore bir dipte degil. CDV ler fiyat hareketi ile uyumludur.", "telegram": "https://t.me/c/1576483505/397/195912", "id": "s1_2_e1"}], "id": "s1_2"}, {"symbol": "SISE", "entries": [{"tarih": "7 Eylul", "fiyat": "41,66", "puan": 3, "yorum": "1.7 olan regresyon dibine cok yaklasmis ve tepki almis gozukmekte. donus yeri ayni zamanda pocu. EUR ya gore takas araligi genis.", "telegram": "https://t.me/c/1576483505/265/206318", "id": "s1_3_e0"}, {"tarih": "11 Mayis", "fiyat": "50,75", "puan": "2+", "yorum": "Ekim 25 te pandemi regresyon dibine temas etmis. Ekim 21 dip vWAP 2 kere calismis, ancak VWAP-VH ikilisinden poc gelisimi gelmemis. 24 tepesine gore poc gelisimi ve VH onayi gelmis. haftalik CDV si de cok kuvvetli", "telegram": "https://t.me/c/1576483505/265/195906", "id": "s1_3_e1"}], "id": "s1_3"}, {"symbol": "USAK", "entries": [{"tarih": "7 Eylul", "fiyat": "1,20", "puan": "2+", "yorum": "1.7 olan dip sapmanin cok asagisina inmis. suan 2.4 ile son tepeye gore eslenik dipte.", "telegram": "https://t.me/c/1576483505/472/206323", "id": "s1_4_e0"}, {"tarih": "11 Mayis", "fiyat": "1,75", "puan": "2+", "yorum": "1.8 ve 1.9 regresyon dibi civarlarinda duruyor. Mayis 23 ten atilan dip vWAP deflarca destek olarak calismis suan onun altina sarkmis ve destek olarak buradan atilan poc calismis. Mayis 25 tepesinden atilan HP e gore pocun asagi inmesi olasi duruyor.", "telegram": "https://t.me/c/1576483505/472/195901?single", "id": "s1_4_e1"}], "id": "s1_4"}, {"symbol": "BIENY", "entries": [{"tarih": "7 Eylul", "fiyat": "20,50", "puan": "2+", "yorum": "pocun asagi inmesi az kalmis. cdv de haftalik son 4 mum.", "telegram": "https://t.me/c/1576483505/46/206328", "id": "s1_5_e0"}, {"tarih": "11 Mayis", "fiyat": "24,28", "puan": "2+", "yorum": "pocun mevcut seviyelere inmesi iyi olabilir. gunlukte ve haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/46/195898", "id": "s1_5_e1"}], "id": "s1_5"}, {"symbol": "KLSER", "entries": [{"tarih": "7 Eylul", "fiyat": "23,64", "puan": "2+", "yorum": "pocunun asagisinda takas araligi genis.", "telegram": "https://t.me/c/1576483505/122277/206331", "id": "s1_6_e0"}, {"tarih": "11 Mayis", "fiyat": "29,30", "puan": "2+", "yorum": "pocun asagi inmesine az kalacak kadar hacimlenme olmus ama SS artirmama ragmen pocu asagi inmedi. gunlukte hala dusus yonlu. Araliktan beri haftalikta FYCG", "telegram": "https://t.me/c/1576483505/122277/195894", "id": "s1_6_e1"}], "id": "s1_6"}, {"symbol": "CGCAM", "entries": [{"tarih": "7 Eylul", "fiyat": "33,12", "puan": "2+", "yorum": "poc gelisimlerine  ragmen asagidaki pocuna kadar gerilemis. gunlukte FYCG bozulmus.", "telegram": "https://t.me/c/1576483505/131340/206333", "id": "s1_7_e0"}, {"tarih": "11 Mayis", "fiyat": "42,68", "puan": "2+", "yorum": "kademeli poc gelisimleri gelmis en son 35 TL civarinda olmus. Agustos 25 ten HP atinca VH iyi calismis. Gunlukte ve haftalaikta FYCG.", "telegram": "https://t.me/c/1576483505/131340/195890", "id": "s1_7_e1"}], "id": "s1_7"}, {"symbol": "SERNT", "entries": [{"tarih": "7 Eylul", "fiyat": "8,32", "puan": 2, "yorum": "poc cok tepede kalmis bu durum son sektor yayinindan beri pek degismemis.", "telegram": "https://t.me/c/1576483505/143721/206335", "id": "s1_8_e0"}, {"tarih": "11 Mayis", "fiyat": "8,57", "puan": 2, "yorum": "poc cok tepede kalmis.", "telegram": "https://t.me/c/1576483505/143721/195887", "id": "s1_8_e1"}], "id": "s1_8"}]}, {"name": "BİLİŞİM YAZILIM", "stocks": [{"symbol": "ARDYZ", "entries": [{"tarih": "7 Eylul", "fiyat": "82,35", "puan": "-", "yorum": "3 ve 5 yillik R5 in yukarisinda.", "telegram": "https://t.me/c/1576483505/28/206336", "id": "s2_0_e0"}, {"tarih": "18 Mayis", "fiyat": "56,95", "puan": 2, "yorum": "onceki sektor yayininda 33 TL lerden calismistik, %50 degerlenmis. ancak geri cekilisler takip edilebilir. 3 yillik ciplak R5 ve R4une %28 i kalmis.", "telegram": "https://t.me/c/1576483505/28/196717", "id": "s2_0_e1"}], "id": "s2_0"}, {"symbol": "ARENA", "entries": [{"tarih": "7 Eylul", "fiyat": "20,30", "puan": 3, "yorum": "regresyona gore tepeye gore eslenik dipte. dip sapmada.", "telegram": "https://t.me/c/1576483505/29/206337", "id": "s2_1_e0"}, {"tarih": "18 Mayis", "fiyat": "34,18", "puan": "2+", "yorum": "adil deger sapmasi dip olarak 1.sapma destek olarak gecmiste calismis. yine 1. sapmanin yakinlarinda. CDV fiyatla uyumlu ilerlemis.", "telegram": "https://t.me/c/1576483505/29/196719", "id": "s2_1_e1"}], "id": "s2_1"}, {"symbol": "ATATP", "entries": [{"tarih": "7 Eylul", "fiyat": "292,75", "puan": "-", "yorum": "3 ve 5 yillik R5 in yukarisinda.regresyon 2.4 gecmiste dip cok iyi calismis, suan orta kanalin yukarisinda.", "telegram": "https://t.me/c/1576483505/34/206340", "id": "s2_2_e0"}, {"tarih": "18 Mayis", "fiyat": "158,7", "puan": "2+", "yorum": "gelistirdigi poc ile 178 TL arasinda tekrar akumule oluyor gozukuyor. CDV gunluk hala dusus yonlu. haftalik fiyatla uyumlu.", "telegram": "https://t.me/c/1576483505/34/196724", "id": "s2_2_e1"}], "id": "s2_2"}, {"symbol": "VBTYZ", "entries": [{"tarih": "7 Eylul", "fiyat": "38,32", "puan": 2, "yorum": "pocundan %70 yukarida olasi geri cekilisler izlenebilir.", "telegram": "https://t.me/c/1576483505/475/206342", "id": "s2_3_e0"}, {"tarih": "18 Mayis", "fiyat": "24,76", "puan": "2+", "yorum": "Subat 24 ten HP atinca pocundan %27 yukarida. CDV hala dusus yonlu. haftalik CDV si fiyatla uyumlu", "telegram": "https://t.me/c/1576483505/475/196727", "id": "s2_3_e1"}], "id": "s2_3"}, {"symbol": "DESPC", "entries": [{"tarih": "7 Eylul", "fiyat": "40,66", "puan": 3, "yorum": "regreyon 2.6 pandemi dibi oraya temasi yok. regresyon 1.7 destek olarak calismis biraz asagisinda.", "telegram": "https://t.me/c/1576483505/334/206343", "id": "s2_4_e0"}, {"tarih": "18 Mayis", "fiyat": "46,82", "puan": 3, "yorum": "suan regresyon dibi civarinda ancak daha da asagisina da sarkmis. bu noktayi gecmis tepeyle eslenik tespit ettik. Haziran 22 dip vWAP destek olarak calismis. buradan cekilen HP e gore poc gelisimi olmamis. haftalikta FYCG", "telegram": "https://t.me/c/1576483505/334/196730", "id": "s2_4_e1"}], "id": "s2_4"}, {"symbol": "DGATE", "entries": [{"tarih": "7 Eylul", "fiyat": "88,20", "puan": "2+", "yorum": "destek sapmasi olarak calisan sapmaya cok yakin. regresyon 2 dip ve tepe olarak genellikle calismis, biraz asagisina ve yukarisina sarkmasi da olmus.", "telegram": "https://t.me/c/1576483505/328/206345", "id": "s2_5_e0"}, {"tarih": "18 Mayis", "fiyat": "106,3", "puan": 2, "yorum": "Ekimden Nisana gunlukte FYCG varmis, suanda degerlenmis, ancak geri cekilisleri takip edilebilir.", "telegram": "https://t.me/c/1576483505/328/196736", "id": "s2_5_e1"}], "id": "s2_5"}, {"symbol": "ESCOM", "entries": [{"tarih": "7 Eylul", "fiyat": "5,28", "puan": "2+", "yorum": "VH civarinda .cdv haftalik.", "telegram": "https://t.me/c/1576483505/96/206350", "id": "s2_6_e0"}, {"tarih": "18 Mayis", "fiyat": "5,79", "puan": 2, "yorum": "VH onayi cok guzel calismis. VH ile tepe VWAP arasindaki takilma durumuna da cok guzel ornek. suan pocundan %79 VHindan %25 yukarida.", "telegram": null, "id": "s2_6_e1"}], "id": "s2_6"}, {"symbol": "FONET", "entries": [{"tarih": "7 Eylul", "fiyat": "4,58", "puan": "2+", "yorum": "pocundan %75 yukarida. EUR tepe VWAP civarinda.", "telegram": "https://t.me/c/1576483505/356/206354", "id": "s2_7_e0"}, {"tarih": "18 Mayis", "fiyat": "5,55", "puan": 2, "yorum": "Vh onayina bir ornek daha. pocundan %107 VH dan %63 yukarida.", "telegram": "https://t.me/c/1576483505/356/196737", "id": "s2_7_e1"}], "id": "s2_7"}, {"symbol": "KONTR", "entries": [{"tarih": "7 Eylul", "fiyat": "3,50", "puan": "2+", "yorum": "arz regresyon 2.7. deger alaninin asagisina sarkti ama pek hacimlenmesi yok.", "telegram": "https://t.me/c/1576483505/166/206357", "id": "s2_8_e0"}, {"tarih": "18 Mayis", "fiyat": "10,10", "puan": 3, "yorum": "1.8 ile regresyon destek-2 tepe- son dip eslenik calismis. pocta. Gunlukte Nisandan beri gorulen CDV.", "telegram": "https://t.me/c/1576483505/166/196738", "id": "s2_8_e1"}], "id": "s2_8"}, {"symbol": "MTRKS", "entries": [{"tarih": "7 Eylul", "fiyat": "31,58", "puan": 2, "yorum": "poc gelisimi ce VH onayi sonrasi yukseliste, pocundan %47 yukarida.", "telegram": "https://t.me/c/1576483505/184/206359", "id": "s2_9_e0"}, {"tarih": "18 Mayis", "fiyat": "24,44", "puan": 3, "yorum": "Subat 22 den cekilen dip VWAP calismis. ancak HPine gore poc gelisimi olmadigi gibi belirgin bir hacimlenmede olmamis. Mart 24 ten HP atinca poc gelisimi gelmis.", "telegram": "https://t.me/c/1576483505/184/196742", "id": "s2_9_e1"}], "id": "s2_9"}, {"symbol": "INDES", "entries": [{"tarih": "7 Eylul", "fiyat": "11,83", "puan": 2, "yorum": "pocundan %50 yukarida. eski calistigimiz seviyelere gore degerlenmis.", "telegram": "https://t.me/c/1576483505/131/206362", "id": "s2_10_e0"}, {"tarih": "18 Mayis", "fiyat": "10,77", "puan": "2+", "yorum": "onceki calistigimiz yere gore degerlenmis, olur ya VH a yada baska destek seviyelerine cekilmesi olursa izlenebilir.", "telegram": "https://t.me/c/1576483505/131/196746", "id": "s2_10_e1"}], "id": "s2_10"}, {"symbol": "PENTA", "entries": [{"tarih": "7 Eylul", "fiyat": "13,06", "puan": "2+", "yorum": "pocunu asagi indirmesine az kalmis. Temmuz 23 ten HP atinca da poc asagi inmemis. EUR da hala dusus trendinde.", "telegram": "https://t.me/c/1576483505/219/206364", "id": "s2_11_e0"}, {"tarih": "18 Mayis", "fiyat": "15,28", "puan": "2+", "yorum": "24 pocuna ve tepe VWAPine geldi, bunlari asacak mi geri mi cekilecek izlenebilir. son yukselisin CDV si fiyat mumlarina gore kuvvetli gozukuyor.", "telegram": "https://t.me/c/1576483505/219/196749", "id": "s2_11_e1"}], "id": "s2_11"}, {"symbol": "KAREL", "entries": [{"tarih": "14 Eylul", "fiyat": "8,12", "puan": 3, "yorum": "pandemi regresyon dibinde. Mayistan beri haftalik CDV de dusus olmus.", "telegram": "https://t.me/c/1576483505/147/206369", "id": "s2_12_e0"}, {"tarih": "18 Mayis", "fiyat": "12,57", "puan": "2+", "yorum": "takas araligindaki daralmasi cok dikkat cekiciydi. suan pocundan %40 yukarida. geri cekilisler izlenmeli.haftalikta Temmuzdan itibaren FYCG varmis.", "telegram": "https://t.me/c/1576483505/147/196753", "id": "s2_12_e1"}], "id": "s2_12"}, {"symbol": "KFEIN", "entries": [{"tarih": "14 Eylul", "fiyat": "8,01", "puan": "2+", "yorum": "1.7 pandemi dip ve tepe olarak gecmiste calismis ama en dip ora degil, her ikisine de temas yok. cdv dusus yonlu. EUR da pocuna yakin ve hacimli bir bolgede.", "telegram": "https://t.me/c/1576483505/389/206374", "id": "s2_13_e0"}, {"tarih": "18 Mayis", "fiyat": "9,37", "puan": 2, "yorum": "belirli bir regresyon dibinde degil.fiyat poc civarinda ve gunluk CDV hala dusus egiliminde.", "telegram": "https://t.me/c/1576483505/389/196756", "id": "s2_13_e1"}], "id": "s2_13"}, {"symbol": "KRONT", "entries": [{"tarih": "14 Eylul", "fiyat": "21,82", "puan": 2, "yorum": "2.9 pandemi dip tepe gecmiste calismis. 1.9 ara bolgede dip tepe regresyon calismis, suan orta kanalin biraz ustunde.", "telegram": "https://t.me/c/1576483505/395/206380", "id": "s2_14_e0"}, {"tarih": "18 Mayis", "fiyat": "20,86", "puan": "2+", "yorum": "tam olarak isaretledigim yerde VWAP-poc kesisimi ile 3 puan olarak calismistik. suan fiyat %70 artmis durumda. bolunmeden sonraki poc gelisimi de dikkat cekiciymis.", "telegram": "https://t.me/c/1576483505/395/196761", "id": "s2_14_e1"}], "id": "s2_14"}, {"symbol": "LINK", "entries": [{"tarih": "14 Eylul", "fiyat": "5,31", "puan": "-", "yorum": "regresyon 2.2 tepe olarak calismis, dibine temasi henuz olmamis.", "telegram": "https://t.me/c/1576483505/399/206384", "id": "s2_15_e0"}, {"tarih": "18 Mayis", "fiyat": "6,09", "puan": "-", "yorum": "gecmiste en dip adil deger sapmasi olmus. suan bir ust sapmada. minikte altina sarksa da 1.8 ile regresyon dibine temas etmis.", "telegram": "https://t.me/c/1576483505/399/196764", "id": "s2_15_e1"}], "id": "s2_15"}, {"symbol": "LOGO", "entries": [{"tarih": "14 Eylul", "fiyat": "140,9", "puan": 3, "yorum": "regresyon 2.3 tepe olarak calismis, suan ona gore eslenik dipte. Ekim 23 ten HP atinca poc gelisimi gelmis. EUR VL da.", "telegram": "https://t.me/c/1576483505/178/206386", "id": "s2_16_e0"}, {"tarih": "18 Mayis", "fiyat": "154,4", "puan": "2+", "yorum": "3 kere destek olan sapma dibine temas edip hareketlenmis. 2.5 ile regresyon dibi defalarca dip-tepe olarak calismis. yakin zamanda yine temas gelmis.dip VWAP i calisirarak ilerlettigimde, Haziran 24 ten atilan VWAP-POC durumunda poc yukarida", "telegram": "https://t.me/c/1576483505/178/196769", "id": "s2_16_e1"}], "id": "s2_16"}, {"symbol": "NETAS", "entries": [{"tarih": "14 Eylul", "fiyat": "94,90", "puan": 2, "yorum": "Ocaktan Agustos`a haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/200/206391", "id": "s2_17_e0"}, {"tarih": "18 Mayis", "fiyat": "69,70", "puan": "2+", "yorum": "yakin zamanda regresyon bazli bir dibe temas gelmemis. 21 tepeden cekilen HP defalarca destek olarak calismis suan %25 yukarisinda. pocta.  haftalik CDV goruntusu FYCG", "telegram": "https://t.me/c/1576483505/200/196774", "id": "s2_17_e1"}], "id": "s2_17"}, {"symbol": "PAPIL", "entries": [{"tarih": "14 Eylul", "fiyat": "12,81", "puan": 2, "yorum": "adil deger civarinda. 2.1 dip tepe olarak gecmiste calismis,suan regresyona temasi yok.", "telegram": "https://t.me/c/1576483505/427/206396", "id": "s2_18_e0"}, {"tarih": "18 Mayis", "fiyat": "16,96", "puan": 2, "yorum": "dip ve toplanma sapmasinda. regresyon dibinin cok uzaginda. arada destek olan seviyeyi de kontrol ettigimde onun da uzaginda. 24 tepeye gore fiyat pocta ve poc gelisimi gelmis. Gunluk CDV hala dusus yonlu. haftalik CDV goruntusu.", "telegram": "https://t.me/c/1576483505/427/196781", "id": "s2_18_e1"}], "id": "s2_18"}, {"symbol": "PKART", "entries": [{"tarih": "14 Eylul", "fiyat": "115,4", "puan": "2+", "yorum": "VH civarinda. ret gelen yer 3 yillik ciplak R5.cdv de Nisandan beri dusus olmus. EUR da tepe VWAPte.", "telegram": "https://t.me/c/1576483505/434/206400", "id": "s2_19_e0"}, {"tarih": "18 Mayis", "fiyat": "168,7", "puan": 2, "yorum": "onceki analizimize gore %130 degerli.", "telegram": "https://t.me/c/1576483505/434/196787", "id": "s2_19_e1"}], "id": "s2_19"}, {"symbol": "SMART", "entries": [{"tarih": "14 Eylul", "fiyat": "22,28", "puan": "2+", "yorum": "gecen yayinda bahsettigim gibi regresyon 1.7e temas olmadan yukari orta kanala yonlenip takip edilmesini calismistik. \nordan geri geliyor regresyona gore durumu takip edilebilir. pocun asagisinda, pocun asagi inmesi teknik acidan iyi olabilir.", "telegram": "https://t.me/c/1576483505/452/206407", "id": "s2_20_e0"}, {"tarih": "18 Mayis", "fiyat": "35,98", "puan": "2+", "yorum": "regresyon dibine inmeden yukari meyletmis, suan direnc olan orta blokta. hareketi izlenebilir. haftalikta CDV de fiyata yansimamis CDV goruntusu varmis.", "telegram": "https://t.me/c/1576483505/452/196788", "id": "s2_20_e1"}], "id": "s2_20"}, {"symbol": "EDATA", "entries": [{"tarih": "14 Eylul", "fiyat": "16,41", "puan": "-", "yorum": "pocundan %286 yukarisinda.", "telegram": "https://t.me/c/1576483505/343/206409", "id": "s2_21_e0"}, {"tarih": "18 Mayis", "fiyat": "24,70", "puan": "-", "yorum": "artik spekulatif hedeflerinde.", "telegram": "https://t.me/c/1576483505/343/196793", "id": "s2_21_e1"}], "id": "s2_21"}, {"symbol": "MIATK", "entries": [{"tarih": "14 Eylul", "fiyat": "37,40", "puan": 3, "yorum": "arz regresyona temas edip tepki almis gozukuyor. pocunda. Mayistan Agustosa kadar CDv de dusus olmus.", "telegram": "https://t.me/c/1576483505/191/206410", "id": "s2_22_e0"}, {"tarih": "18 Mayis", "fiyat": "50,05", "puan": "2+", "yorum": "VH asildi, geri cekilisler mutlaka takip edilmeli.", "telegram": "https://t.me/c/1576483505/191/196794", "id": "s2_22_e1"}], "id": "s2_22"}, {"symbol": "MOBTL", "entries": [{"tarih": "14 Eylul", "fiyat": "13,15", "puan": "-", "yorum": null, "telegram": null, "id": "s2_23_e0"}, {"tarih": "18 Mayis", "fiyat": "13,48", "puan": "-", "yorum": "kac kere calistik hatirlayamadim :) artik R5 e yolculugunu bekliyoruz.", "telegram": "https://t.me/c/1576483505/194/196796", "id": "s2_23_e1"}], "id": "s2_23"}, {"symbol": "YEOTK", "entries": [{"tarih": "14 Eylul", "fiyat": "34,44", "puan": "2+", "yorum": "pocundan %110 yukarida. EUR Subat 24 tepesine gore tepe VWAPte.", "telegram": "https://t.me/c/1576483505/280/206414", "id": "s2_24_e0"}, {"tarih": "18 Mayis", "fiyat": "86,80", "puan": "-", "yorum": "istahini ve hirsini acikca belli etmis, ani bir poc gelisimi de yapip ivmelenmis. CDVlerde hep fiyatla uyumlu ilerlemis.", "telegram": "https://t.me/c/1576483505/280/196797", "id": "s2_24_e1"}], "id": "s2_24"}, {"symbol": "HTTBT", "entries": [{"tarih": "14 Eylul", "fiyat": "34,88", "puan": "2+", "yorum": "regresyon 1.7 dip tepe gecmiste calismis ama suan asagisinda. CDV de cok dusus olmus.", "telegram": "https://t.me/c/1576483505/126/206420", "id": "s2_25_e0"}, {"tarih": "18 Mayis", "fiyat": "44,30", "puan": 3, "yorum": "regresyon dibinde ama altina sarkmis geri o seviyeye gelmis. Mayis 23 dip VWAP iyi calismis ve buna gore poc gelisimi de gelmis. suan o gelisen poc civarinda.", "telegram": "https://t.me/c/1576483505/126/196800", "id": "s2_25_e1"}], "id": "s2_25"}, {"symbol": "OBASE", "entries": [{"tarih": "14 Eylul", "fiyat": "35,96", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/417/206424", "id": "s2_26_e0"}, {"tarih": "18 Mayis", "fiyat": "40,42", "puan": 3, "yorum": "tepe VWAP ile VH arasinda. gunluk CDV hala yukselis yonlu siralanmamis. ancak haftalik CDV de FYCG", "telegram": "https://t.me/c/1576483505/417/196804", "id": "s2_26_e1"}], "id": "s2_26"}, {"symbol": "AZTEK", "entries": [{"tarih": "14 Eylul", "fiyat": "3,65", "puan": "2+", "yorum": "poc biraz tepede.", "telegram": "https://t.me/c/1576483505/39/206429", "id": "s2_27_e0"}, {"tarih": "18 Mayis", "fiyat": "4,83", "puan": 3, "yorum": "takas araligi daralmis. gunlukte FYCG.", "telegram": "https://t.me/c/1576483505/39/196570", "id": "s2_27_e1"}], "id": "s2_27"}, {"symbol": "INGRM", "entries": [{"tarih": "14 Eylul", "fiyat": "367,50", "puan": "2+", "yorum": "pandemi regresyon 2.2 buna temas yok. EUR da hala dusus yonlu.", "telegram": "https://t.me/c/1576483505/374/206434", "id": "s2_28_e0"}, {"tarih": "18 Mayis", "fiyat": "502,5", "puan": 3, "yorum": "24 tepeden takas araligi daha iyi calisiyor gorunuyor.", "telegram": "https://t.me/c/1576483505/374/196807", "id": "s2_28_e1"}], "id": "s2_28"}, {"symbol": "FORTE", "entries": [{"tarih": "14 Eylul", "fiyat": "115,1", "puan": "2+", "yorum": "gelisen pocundan %25 yukarida. EUR takas araliginda daralma var", "telegram": "https://t.me/c/1576483505/358/206440", "id": "s2_29_e0"}, {"tarih": "18 Mayis", "fiyat": 99, "puan": 3, "yorum": "poc gelisimi goruluyor. gunlukte FYCG oldugunu dusunuyorum. Cunku fiyat eski tepeyi asmamis ama CDV goruntusu asmis gozukuyor.  yillik R4 calismis", "telegram": "https://t.me/c/1576483505/358/196811", "id": "s2_29_e1"}], "id": "s2_29"}, {"symbol": "REEDR", "entries": [{"tarih": "14 Eylul", "fiyat": "5,41", "puan": "2+", "yorum": "TL de hala dusus yonlu. deger alaninin asagisinda suanda.", "telegram": "https://t.me/c/1576483505/19846/206443", "id": "s2_30_e0"}, {"tarih": "18 Mayis", "fiyat": "8,05", "puan": "2+", "yorum": "inmis oldugu asagidaki ikinci mal toplama bolgesinde hizli hacimlendi.", "telegram": "https://t.me/c/1576483505/19846/196815", "id": "s2_30_e1"}], "id": "s2_30"}, {"symbol": "PATEK", "entries": [{"tarih": "14 Eylul", "fiyat": "25,26", "puan": "2+", "yorum": "Marttan beri FYCG.", "telegram": "https://t.me/c/1576483505/95197/206445", "id": "s2_31_e0"}, {"tarih": "18 Mayis", "fiyat": "25,84", "puan": "2+", "yorum": "VH a takilmis gozukuyor hareketi takip edilmeli. haftalik CDV goruntusu.", "telegram": "https://t.me/c/1576483505/95197/196816", "id": "s2_31_e1"}], "id": "s2_31"}, {"symbol": "ODINE", "entries": [{"tarih": "14 Eylul", "fiyat": "781,5", "puan": "-", "yorum": null, "telegram": null, "id": "s2_32_e0"}, {"tarih": "18 Mayis", "fiyat": 1131, "puan": "-", "yorum": null, "telegram": null, "id": "s2_32_e1"}], "id": "s2_32"}, {"symbol": "SKYLP (IDEAS)", "entries": [{"tarih": "14 Eylul", "fiyat": "169,0", "puan": 2, "yorum": "AVWAP sapma daha iyi calismis. sapmaya gore geri cekilmis. regresyon dip tepe degil ama yakin gecmiste 1.5 calismis temasi yok.", "telegram": "https://t.me/c/1576483505/377/206448", "id": "s2_33_e0"}, {"tarih": "18 Mayis", "fiyat": "337,5", "puan": 2, "yorum": "yukaridaki bolgede sapmalar arasinda bir suredir hareket ediyor. son donemde dip edindigi bolge regresyonun orta kanali.", "telegram": "https://t.me/c/1576483505/377/196819", "id": "s2_33_e1"}], "id": "s2_33"}, {"symbol": "ONRYT", "entries": [{"tarih": "14 Eylul", "fiyat": "60,85", "puan": 2, "yorum": "pocun asagisinda seyrediyor.", "telegram": "https://t.me/c/1576483505/128624/206453", "id": "s2_34_e0"}, {"tarih": "18 Mayis", "fiyat": "71,75", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/128624/196821", "id": "s2_34_e1"}], "id": "s2_34"}, {"symbol": "INTEK (UZERB)", "entries": [{"tarih": "14 Eylul", "fiyat": "223,6", "puan": 2, "yorum": "regresyon 2 dip tepe calismis suan oralara yakin izlenebilir. CDV dusus yonlu.", "telegram": "https://t.me/c/1576483505/526/206455", "id": "s2_35_e0"}, {"tarih": "18 Mayis", "fiyat": "252,75", "puan": 2, "yorum": "dip tepe olarak gecmiste calismis regresyon dibine cok az kalmis.", "telegram": "https://t.me/c/1576483505/526/196824", "id": "s2_35_e1"}], "id": "s2_35"}, {"symbol": "DOFRB", "entries": [{"tarih": "14 Eylul", "fiyat": "112,3", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/171120/206458", "id": "s2_36_e0"}, {"tarih": "18 Mayis", "fiyat": "165,5", "puan": "2+", "yorum": "calistigimiz seviyelere gore cok degerlendi.", "telegram": null, "id": "s2_36_e1"}], "id": "s2_36"}]}, {"name": "DAYANIKLI TÜKETİM", "stocks": [{"symbol": "ALCAR", "entries": [{"tarih": "14 Eylul", "fiyat": "725,5", "puan": "2+", "yorum": "regresyon 2 dip tepe gecmiste calismis ancak yakin zamanda temasi yok. dip sapma adil deger ona da temas etmemis yakin zamanda. kendini deger alaninin asagisina atmis ve hacimlenme de olmus, poc asagi iner mi izlenebilir.", "telegram": "https://t.me/c/1576483505/294/206459", "id": "s3_0_e0"}, {"tarih": "25 Mayis", "fiyat": "777,5", "puan": 3, "yorum": "destek olan regresyon dibinde. daha oncede destek olan sapma dibinde. 2021 tepe VWAP oncede destek olmus yine oralarda. haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/294/197047", "id": "s3_0_e1"}], "id": "s3_0"}, {"symbol": "ARCLK", "entries": [{"tarih": "14 Eylul", "fiyat": "95,80", "puan": 3, "yorum": "1.9 regresyon dip tepe calismis onun biraz asagisindan tepki almis gozukuyor. pocunun asagisinda.", "telegram": "https://t.me/c/1576483505/27/206462", "id": "s3_1_e0"}, {"tarih": "25 Mayis", "fiyat": "114,1", "puan": 3, "yorum": "Ekimden beri ayni sapmalarda. 2.1 defalarca regresyon dibi olarak calismis. bir suredir ol bolgede hareket ediyor. poc gelisimi de gelmis. gunluk FYCG.", "telegram": "https://t.me/c/1576483505/27/197053", "id": "s3_1_e1"}], "id": "s3_1"}, {"symbol": "SILVR", "entries": [{"tarih": "14 Eylul", "fiyat": "2,16", "puan": 3, "yorum": "pocuna yakin. gunlukte son donemde yavaslasa da FYCG.EUR pocu cok tepede.", "telegram": "https://t.me/c/1576483505/451/206465", "id": "s3_2_e0"}, {"tarih": "25 Mayis", "fiyat": "2,72", "puan": 3, "yorum": "1.2 regresyon dibi en dip degil gecmiste de destek olmus, suan oralarda. mevcut blok hacimli ancak poc gelisimi gelmemis. gunlukte bolunmeden sonraki CDV goruntusu. haftalikta Nisandan beri olan CDV goruntusu", "telegram": "https://t.me/c/1576483505/451/197057", "id": "s3_2_e1"}], "id": "s3_2"}, {"symbol": "VESBE", "entries": [{"tarih": "14 Eylul", "fiyat": "5,78", "puan": "2+", "yorum": "regresyon 2.3-2.4 pandemi regresyon. 2.3 e temas gelmis yakin zamanda. poc yukarida, asagi inse faydali olabilir", "telegram": "https://t.me/c/1576483505/274/206469", "id": "s3_3_e0"}, {"tarih": "25 Mayis", "fiyat": "7,29", "puan": 2, "yorum": "hala dusus trendi devam ediyor, pandemiden sonraki hic ugramadigi sapmalarda. neredeyse pandemi regresyon dibine yaklasmis. balina blogunun da cok asagisina sarkmis.", "telegram": "https://t.me/c/1576483505/274/197062", "id": "s3_3_e1"}], "id": "s3_3"}, {"symbol": "VESTL", "entries": [{"tarih": "14 Eylul", "fiyat": "25,86", "puan": "2+", "yorum": "regresyon 2.2 pandemi tepe gecmiste calismis, yakin zamanda temasi olmamis.", "telegram": "https://t.me/c/1576483505/275/206471", "id": "s3_4_e0"}, {"tarih": "25 Mayis", "fiyat": "29,40", "puan": 2, "yorum": "hala dusus trendi devam ediyor, pandemiden sonraki hic ugramadigi sapmalarda. regresyonda 2.2 yi aldim tepeyle de ortustugu icin ona az kalmis.", "telegram": "https://t.me/c/1576483505/275/197067", "id": "s3_4_e1"}], "id": "s3_4"}, {"symbol": "ARZUM", "entries": [{"tarih": "14 Eylul", "fiyat": "1,53", "puan": 2, "yorum": "Temmuz 24 ten HP atinca deger alani cok yukarida kalmis asagida pek hacimlenme de olmamis. haftalikta CDV de cok dusus olmus.", "telegram": "https://t.me/c/1576483505/299/206473", "id": "s3_5_e0"}, {"tarih": "25 Mayis", "fiyat": "2,59", "puan": 2, "yorum": "adil deger sapmasi destek 3.sapma bir suredir direnc olarak calismis. bir kere altina sarktigi da gorulmus ancak 1.4 regresyon genellikle guzel calismis, oradan yaklasik %10 yukarida.arzdan HP atinca yukaridaki bolgelerde hacimlenmeler goruluyor ancak poc gelisimi gelmemis.", "telegram": "https://t.me/c/1576483505/299/197071", "id": "s3_5_e1"}], "id": "s3_5"}, {"symbol": "IHEVA", "entries": [{"tarih": "14 Eylul", "fiyat": "1,99", "puan": "2+", "yorum": "pocun biraz yukarisinda. poc biraz tepede. EUR da dusus yonlu.", "telegram": "https://t.me/c/1576483505/378/206477", "id": "s3_6_e0"}, {"tarih": "25 Mayis", "fiyat": "2,32", "puan": 3, "yorum": "sapma baslangicini 2018 e kadar cektim. adil deger sapmasi destek olarak calismis suan oralara yakin. SS 7 de mevcut fiyattan poc gelisimi gelmis. gunlukte ve haftalikta FYCG", "telegram": "https://t.me/c/1576483505/378/197077", "id": "s3_6_e1"}], "id": "s3_6"}, {"symbol": "KLMSN", "entries": [{"tarih": "14 Eylul", "fiyat": "28,20", "puan": 3, "yorum": "destek sapmasinda. regresyon pandemi 2.1 o bolgeye cok yakin. Temmuz 22 den HP atinca 2 kere poc gelisimi olmus.", "telegram": "https://t.me/c/1576483505/160/206482", "id": "s3_7_e0"}, {"tarih": "25 Mayis", "fiyat": "34,64", "puan": 3, "yorum": "1.7 regresyon dibi olarak calismis. orta cizgi direnc olmus.Haziran 22 den atilan VWAP dip olarak calismis, ayni yerden HP atinca 30 TL civarinda cok yogun hacimlenme varmis ama poc gelisimi gelmemis. Mayis 24 ten poc gelisimi. Gunlukte Nisandan beri FYCG. Haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/160/197081", "id": "s3_7_e1"}], "id": "s3_7"}]}, {"name": "DESTEK HİZMET", "stocks": [{"symbol": "BEYAZ", "entries": [{"tarih": "14 Eylul", "fiyat": "22,96", "puan": 3, "yorum": "sapma tepesi ve adil deger sapmasi calisan yerler. Subat 21 den HP cekince poc gelisimi var uzun suredir. CDV gunluk yonlu dususte.", "telegram": "https://t.me/c/1576483505/312/206488", "id": "s4_0_e0"}, {"tarih": "25 Mayis", "fiyat": "29,32", "puan": 3, "yorum": "1.3 regresyon dip tepe gecmiste calismis suan oralarda degil. cdv gunlukte hala dusus yonlu. cdv haftalikta fiyatla uyumlu.", "telegram": "https://t.me/c/1576483505/312/197087", "id": "s4_0_e1"}], "id": "s4_0"}, {"symbol": "CEOEM", "entries": [{"tarih": "14 Eylul", "fiyat": "28,92", "puan": "2+", "yorum": "Subat 25ten beri haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/320/206493", "id": "s4_1_e0"}, {"tarih": "25 Mayis", "fiyat": "26,96", "puan": "2+", "yorum": "1.5 ile olan daha once calismis destek regresyonda ancak asagisina da sarkmis oncesinde. haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/320/197091", "id": "s4_1_e1"}], "id": "s4_1"}, {"symbol": "AKYHO", "entries": [{"tarih": "14 Eylul", "fiyat": "2,21", "puan": "2+", "yorum": "regresyon pandemi ve 2 tepe olarak calismis yakin zamanda temasi yok.  regresyon 1.5 arada destek olarak calismis,suan biraz asagisinda. agustos 24 e gore pocu yukarida.", "telegram": "https://t.me/c/1576483505/289/206496", "id": "s4_2_e0"}, {"tarih": "25 Mayis", "fiyat": "2,74", "puan": 3, "yorum": "destek ve toplanma sapmasinda. 1.6 regresyon dibinin %18 yukarisinda. 20 tepesine gore VH civarlarinda.Gunlukte ve haftalikta FYCG.", "telegram": "https://t.me/c/1576483505/289/197095", "id": "s4_2_e1"}], "id": "s4_2"}, {"symbol": "FLAP", "entries": [{"tarih": "14 Eylul", "fiyat": "13,19", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/355/206502", "id": "s4_3_e0"}, {"tarih": "25 Mayis", "fiyat": "13,08", "puan": "2+", "yorum": null, "telegram": "https://t.me/c/1576483505/355/197100", "id": "s4_3_e1"}], "id": "s4_3"}, {"symbol": "GATEG (SNKRN)", "entries": [{"tarih": "14 Eylul", "fiyat": "275,00", "puan": "-", "yorum": null, "telegram": null, "id": "s4_4_e0"}, {"tarih": "25 Mayis", "fiyat": "312,5", "puan": "-", "yorum": null, "telegram": null, "id": "s4_4_e1"}], "id": "s4_4"}, {"symbol": "BIGTK", "entries": [{"tarih": "14 Eylul", "fiyat": "291,00", "puan": "-", "yorum": null, "telegram": null, "id": "s4_5_e0"}, {"tarih": "25 Mayis", "fiyat": "230,8", "puan": null, "yorum": null, "telegram": null, "id": "s4_5_e1"}], "id": "s4_5"}, {"symbol": "MACKO", "entries": [{"tarih": "14 Eylul", "fiyat": "34,38", "puan": 2, "yorum": "Agustos 23 ten HP gore VH 3 kere calismis.", "telegram": "https://t.me/c/1576483505/179/206506", "id": "s4_6_e0"}, {"tarih": "25 Mayis", "fiyat": "44,00", "puan": 2, "yorum": "vh iki kere destek olarak calismis, pocundan %111 vh indan %53 yukarida. haftalik CDV goruntusu dikkat cekici, geri cekilisler takip edilmeli.", "telegram": "https://t.me/c/1576483505/179/197105", "id": "s4_6_e1"}], "id": "s4_6"}, {"symbol": "HRKET", "entries": [{"tarih": "14 Eylul", "fiyat": "80,60", "puan": 2, "yorum": null, "telegram": null, "id": "s4_7_e0"}, {"tarih": "25 Mayis", "fiyat": "75,10", "puan": "2+", "yorum": "poca yakin.", "telegram": "https://t.me/c/1576483505/100168/197108", "id": "s4_7_e1"}], "id": "s4_7"}, {"symbol": "PCILT", "entries": [{"tarih": "14 Eylul", "fiyat": "31,40", "puan": 1, "yorum": null, "telegram": null, "id": "s4_8_e0"}, {"tarih": "25 Mayis", "fiyat": "33,36", "puan": 1, "yorum": "1.4 regresyon dibi gecmiste dip tepe cok iyi calismis. ancak suan tepelere cok yakin", "telegram": "https://t.me/c/1576483505/428/197111", "id": "s4_8_e1"}], "id": "s4_8"}, {"symbol": "DOCO", "entries": [{"tarih": "14 Eylul", "fiyat": "11131,4", "puan": "-", "yorum": null, "telegram": null, "id": "s4_9_e0"}, {"tarih": "25 Mayis", "fiyat": 9625, "puan": "-", "yorum": "oyleymis gibi gozukmese de regresyon dibinde. Nisan 25 VWAP calismis.", "telegram": "https://t.me/c/1576483505/337/197114", "id": "s4_9_e1"}], "id": "s4_9"}]}]};
+const PW_HASH = "85d1fb597319e35e98bcff0a347330b8929fe50b02e88af1b91d89ba087dbd09";
+
+let appData = null;       // live data, either from artifact/local storage or seed
+let selectedStockId = null;
+let unlocked = false;
+let editingEntryId = null; // when set, entry modal is editing this entry
+let editingStockId = null; // stock context for add/edit
+let sectorCollapse = {};
+let sortMode = 'sector'; // 'sector' | 'score'
+let autoOpenTv = true;
+try{ const saved = localStorage.getItem('seans_defteri_auto_tv'); if(saved !== null) autoOpenTv = saved === '1'; }catch(e){}
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+function tvSymbol(rawSymbol){
+  // Strip parenthetical alt-names e.g. "SKYLP (IDEAS)" -> "SKYLP"
+  const base = String(rawSymbol).split('(')[0].trim().toUpperCase();
+  return base;
+}
+function tvUrl(rawSymbol){
+  return `https://www.tradingview.com/chart/?symbol=BIST%3A${encodeURIComponent(tvSymbol(rawSymbol))}`;
+}
+function scoreClass(v){
+  if(v === 3 || v === '3') return 'score-3';
+  if(v === '2+') return 'score-2p';
+  if(v === 2 || v === '2') return 'score-2';
+  if(v === 1 || v === '1') return 'score-1';
+  return 'score-dash';
+}
+function fmtScore(v){
+  if(v === null || v === undefined || v === '') return '-';
+  return String(v);
+}
+function escapeHtml(s){
+  if(s === null || s === undefined) return '';
+  return String(s)
+    .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+    .replaceAll('"','&quot;');
+}
+
+async function sha256Hex(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function loadLocalOverride(){
+  try{
+    const raw = localStorage.getItem('seans_defteri_data');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveLocalOverride(data){
+  try{ localStorage.setItem('seans_defteri_data', JSON.stringify(data)); }catch(e){}
+}
+
+function findStock(stockId){
+  for(const sector of appData.sectors){
+    for(const st of sector.stocks){
+      if(st.id === stockId) return {stock: st, sector};
+    }
+  }
+  return null;
+}
+
+function totalStockCount(){
+  return appData.sectors.reduce((n,s)=>n+s.stocks.length,0);
+}
+
+/* ---------------- Rendering ---------------- */
+
+function scoreRank(v){
+  if(v === 3 || v === '3') return 5;
+  if(v === '2+') return 4;
+  if(v === 2 || v === '2') return 3;
+  if(v === 1 || v === '1') return 2;
+  return 0; // '-', null, undefined
+}
+function scoreOptionsHtml(current){
+  const opts = ['3','2+','2','1','-'];
+  return opts.map(o => `<option value="${o}" ${String(current) === o ? 'selected' : ''}>${o}</option>`).join('');
+}
+
+function renderSidebar(filter){
+  const container = $('#sectorList');
+  container.innerHTML = '';
+  const f = (filter||'').trim().toUpperCase();
+  let anyMatch = false;
+
+  function makeItem(st, sectorName){
+    const item = document.createElement('div');
+    item.className = 'ticker-item' + (st.id === selectedStockId ? ' active' : '');
+    const latest = st.entries[0];
+    const scoreBadge = `<span class="badge mini ${scoreClass(latest ? latest.puan : null)}">${fmtScore(latest ? latest.puan : null)}</span>`;
+    const sectorTagHtml = sortMode === 'score' ? `<span class="ti-sector">${escapeHtml(sectorName)}</span>` : '';
+    item.innerHTML = `<span class="ti-left"><span>${escapeHtml(st.symbol)}</span>${sectorTagHtml}</span><span class="ti-right">${scoreBadge}<span class="px">${latest && latest.fiyat ? escapeHtml(latest.fiyat) : ''}</span><a class="tv-mini" href="${tvUrl(st.symbol)}" target="_blank" rel="noopener" title="TradingView'de aç">↗</a></span>`;
+    item.querySelector('.ti-left').addEventListener('click', ()=>{
+      selectedStockId = st.id;
+      renderSidebar($('#searchInput').value);
+      renderMain();
+      if(autoOpenTv){
+        window.open(tvUrl(st.symbol), '_blank');
+      }
+    });
+    item.querySelector('.tv-mini').addEventListener('click', (ev)=> ev.stopPropagation());
+    return item;
+  }
+
+  if(sortMode === 'score'){
+    const tiers = ['3','2+','2','1','-'];
+    const tierLabels = { '3':'Puan 3', '2+':'Puan 2+', '2':'Puan 2', '1':'Puan 1', '-':'Puansız / Belirsiz' };
+    let flat = [];
+    appData.sectors.forEach(sector=>{
+      sector.stocks.forEach(st=>{
+        if(!f || st.symbol.toUpperCase().includes(f)) flat.push({st, sectorName: sector.name});
+      });
+    });
+    anyMatch = flat.length > 0;
+
+    tiers.forEach(tier=>{
+      const inTier = flat.filter(({st})=>{
+        const p = st.entries[0] ? st.entries[0].puan : null;
+        const norm = (p === null || p === undefined || p === '') ? '-' : String(p);
+        return norm === tier;
+      }).sort((a,b)=> a.st.symbol.localeCompare(b.st.symbol));
+      if(inTier.length === 0) return;
+
+      const collapsed = sectorCollapse['score_' + tier] && !f;
+      const group = document.createElement('div');
+      group.className = 'sector-group' + (collapsed ? ' collapsed' : '');
+
+      const head = document.createElement('div');
+      head.className = 'sector-head';
+      head.innerHTML = `<span><span class="badge mini ${scoreClass(tier)}" style="margin-right:6px;">${tier}</span>${tierLabels[tier]}</span><span><span class="count">${inTier.length}</span> <span class="chev">▾</span></span>`;
+      head.addEventListener('click', ()=>{
+        sectorCollapse['score_' + tier] = !sectorCollapse['score_' + tier];
+        renderSidebar($('#searchInput').value);
+      });
+      group.appendChild(head);
+
+      const list = document.createElement('div');
+      list.className = 'ticker-list';
+      inTier.forEach(({st, sectorName})=> list.appendChild(makeItem(st, sectorName)));
+      group.appendChild(list);
+      container.appendChild(group);
+    });
+  } else {
+    appData.sectors.forEach((sector, sIdx)=>{
+      const matches = sector.stocks.filter(st => !f || st.symbol.toUpperCase().includes(f));
+      if(f && matches.length === 0) return;
+      anyMatch = true;
+      const collapsed = sectorCollapse[sector.name] && !f;
+
+      const group = document.createElement('div');
+      group.className = 'sector-group' + (collapsed ? ' collapsed' : '');
+
+      const head = document.createElement('div');
+      head.className = 'sector-head';
+      head.innerHTML = `<span>${escapeHtml(sector.name)}</span><span><span class="count">${matches.length}</span> <span class="chev">▾</span></span>`;
+      head.addEventListener('click', ()=>{
+        sectorCollapse[sector.name] = !sectorCollapse[sector.name];
+        renderSidebar($('#searchInput').value);
+      });
+      group.appendChild(head);
+
+      const list = document.createElement('div');
+      list.className = 'ticker-list';
+      matches.forEach(st=> list.appendChild(makeItem(st, sector.name)));
+      group.appendChild(list);
+      container.appendChild(group);
+    });
+  }
+
+  if(!anyMatch){
+    container.innerHTML = '<div class="no-results">Eşleşen hisse bulunamadı.</div>';
+  }
+
+  $('#stockCountSub').textContent = `— ${totalStockCount()} hisse · ${appData.sectors.length} sektör`;
+}
+
+function renderMain(){
+  const main = $('#mainPanel');
+  if(!selectedStockId){
+    main.innerHTML = `<div class="empty-state"><div class="big">Bir hisse seçin</div><div>Soldaki sektör listesinden bir hisse koduna tıklayarak tarihe göre yorum geçmişini görüntüleyin.</div></div>`;
+    return;
+  }
+  const found = findStock(selectedStockId);
+  if(!found){ selectedStockId = null; renderMain(); return; }
+  const { stock, sector } = found;
+  const latest = stock.entries[0] || {};
+
+  main.innerHTML = '';
+
+  const headerEl = document.createElement('div');
+  headerEl.className = 'ticker-header';
+  headerEl.innerHTML = `
+    <div class="ticker-title">
+      <h2>${escapeHtml(stock.symbol)}</h2>
+      <span class="sektor-tag">${escapeHtml(sector.name)}</span>
+      <a class="btn tv-btn" href="${tvUrl(stock.symbol)}" target="_blank" rel="noopener">TradingView'de Aç ↗</a>
+    </div>
+    <div class="ticker-stats">
+      <div class="stat">
+        <div class="label">SON FİYAT</div>
+        <div class="value">${latest.fiyat ? escapeHtml(latest.fiyat) : '—'}</div>
+      </div>
+      <div class="stat">
+        <div class="label">PUAN${unlocked && stock.entries.length ? ' <span class="editable-tag">düzenlenebilir</span>' : ''}</div>
+        <div class="value">${(unlocked && stock.entries.length)
+            ? `<select id="quickScoreSelect" class="quick-score-select ${scoreClass(latest.puan)}">${scoreOptionsHtml(latest.puan)}</select>`
+            : `<span class="badge ${scoreClass(latest.puan)}">${fmtScore(latest.puan)}</span>`}
+        </div>
+      </div>
+      <div class="stat">
+        <div class="label">SON TARİH</div>
+        <div class="value" style="font-size:14px;">${latest.tarih ? escapeHtml(latest.tarih) : '—'}</div>
+      </div>
+    </div>
+  `;
+  main.appendChild(headerEl);
+
+  if(unlocked && stock.entries.length){
+    const sel = headerEl.querySelector('#quickScoreSelect');
+    sel.addEventListener('change', async ()=>{
+      stock.entries[0].puan = sel.value;
+      sel.className = 'quick-score-select ' + scoreClass(sel.value);
+      renderSidebar($('#searchInput').value);
+      await persist();
+      showToast(`${stock.symbol} puanı ${sel.value} olarak güncellendi.`);
+    });
+  }
+
+  const sectionRow = document.createElement('div');
+  sectionRow.className = 'section-title-row';
+  sectionRow.innerHTML = `<h3>Tarihe göre yorum geçmişi (${stock.entries.length} kayıt)</h3>`;
+  main.appendChild(sectionRow);
+
+  if(unlocked){
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn primary add-entry-btn';
+    addBtn.textContent = '+ Yeni Tarihli Yorum Ekle';
+    addBtn.addEventListener('click', ()=> openEntryModal(stock.id, null));
+    main.appendChild(addBtn);
+  }
+
+  const timeline = document.createElement('div');
+  timeline.className = 'timeline';
+
+  if(stock.entries.length === 0){
+    timeline.innerHTML = `<div class="entry"><div class="entry-comment empty">Bu hisse için henüz kayıt bulunmuyor.</div></div>`;
+  }
+
+  stock.entries.forEach((e, idx)=>{
+    const entryEl = document.createElement('div');
+    entryEl.className = 'entry' + (idx === 0 ? ' newest' : '');
+    const commentHtml = e.yorum
+      ? `<div class="entry-comment">${escapeHtml(e.yorum)}</div>`
+      : `<div class="entry-comment empty">Yorum eklenmemiş.</div>`;
+    const tgHtml = e.telegram
+      ? `<div class="entry-foot"><a class="tg-link" href="${escapeHtml(e.telegram)}" target="_blank" rel="noopener">Telegram kaynağını aç →</a></div>`
+      : '';
+    const actionsHtml = unlocked
+      ? `<div class="entry-actions">
+          <button class="icon-btn edit-btn" title="Düzenle">✎</button>
+          <button class="icon-btn del del-btn" title="Sil">✕</button>
+        </div>`
+      : '';
+    entryEl.innerHTML = `
+      <div class="entry-head">
+        <div class="left">
+          <span class="entry-date">${escapeHtml(e.tarih || 'Tarih yok')}</span>
+          <span class="entry-price mono">${e.fiyat ? escapeHtml(e.fiyat) + ' TL' : ''}</span>
+          <span class="badge ${scoreClass(e.puan)}">${fmtScore(e.puan)}</span>
+        </div>
+        ${actionsHtml}
+      </div>
+      ${commentHtml}
+      ${tgHtml}
+    `;
+    if(unlocked){
+      entryEl.querySelector('.edit-btn').addEventListener('click', ()=> openEntryModal(stock.id, e.id));
+      entryEl.querySelector('.del-btn').addEventListener('click', ()=> deleteEntry(stock.id, e.id));
+    }
+    timeline.appendChild(entryEl);
+  });
+
+  main.appendChild(timeline);
+}
+
+/* ---------------- Lock / password ---------------- */
+
+function updateLockUi(){
+  const pill = $('#lockPill');
+  const label = $('#lockLabel');
+  const btn = $('#lockBtn');
+  if(unlocked){
+    pill.classList.add('unlocked');
+    label.textContent = 'Düzenleme Modu Açık';
+    btn.textContent = 'Kilitle';
+  } else {
+    pill.classList.remove('unlocked');
+    label.textContent = 'Görüntüleme Modu';
+    btn.textContent = 'Düzenlemeyi Aç';
+  }
+  renderMain();
+}
+
+$('#lockBtn').addEventListener('click', ()=>{
+  if(unlocked){
+    unlocked = false;
+    updateLockUi();
+  } else {
+    $('#pwErr').textContent = '';
+    $('#pwInput').value = '';
+    $('#pwOverlay').hidden = false;
+    setTimeout(()=> $('#pwInput').focus(), 30);
+  }
+});
+$('#pwCancel').addEventListener('click', ()=>{ $('#pwOverlay').hidden = true; });
+$('#pwOverlay').addEventListener('click', (ev)=>{ if(ev.target.id === 'pwOverlay') $('#pwOverlay').hidden = true; });
+$('#pwInput').addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter') $('#pwSubmit').click(); });
+
+$('#pwSubmit').addEventListener('click', async ()=>{
+  const val = $('#pwInput').value;
+  const hash = await sha256Hex(val);
+  if(hash === PW_HASH){
+    unlocked = true;
+    $('#pwOverlay').hidden = true;
+    updateLockUi();
+    showToast('Düzenleme modu açıldı. Değişiklikleriniz kaydedildiğinde herkese yansır.');
+  } else {
+    $('#pwErr').textContent = 'Şifre yanlış.';
+  }
+});
+
+/* ---------------- Entry add/edit/delete ---------------- */
+
+function openEntryModal(stockId, entryId){
+  editingStockId = stockId;
+  editingEntryId = entryId;
+  const found = findStock(stockId);
+  const stock = found.stock;
+  const title = $('#entryModalTitle');
+  const hint = $('#entryModalHint');
+  const delBtn = $('#fDelete');
+
+  if(entryId){
+    const e = stock.entries.find(x=>x.id === entryId);
+    title.textContent = `${stock.symbol} — Kaydı Düzenle`;
+    hint.textContent = e.tarih || '';
+    $('#fDate').value = e.tarih || '';
+    $('#fPrice').value = e.fiyat || '';
+    $('#fScore').value = ['3','2+','2','1','-'].includes(String(e.puan)) ? String(e.puan) : '-';
+    $('#fComment').value = e.yorum || '';
+    $('#fTelegram').value = e.telegram || '';
+    delBtn.style.display = 'inline-block';
+  } else {
+    title.textContent = `${stock.symbol} — Yeni Tarihli Yorum`;
+    hint.textContent = 'Bu hisse için yeni bir tarihli kayıt oluşturun.';
+    $('#fDate').value = '';
+    $('#fPrice').value = '';
+    $('#fScore').value = '2';
+    $('#fComment').value = '';
+    $('#fTelegram').value = '';
+    delBtn.style.display = 'none';
+  }
+  $('#entryOverlay').hidden = false;
+  setTimeout(()=> $('#fDate').focus(), 30);
+}
+
+$('#fCancel').addEventListener('click', ()=>{ $('#entryOverlay').hidden = true; });
+$('#entryOverlay').addEventListener('click', (ev)=>{ if(ev.target.id === 'entryOverlay') $('#entryOverlay').hidden = true; });
+
+$('#fSave').addEventListener('click', async ()=>{
+  const found = findStock(editingStockId);
+  if(!found) return;
+  const stock = found.stock;
+  const date = $('#fDate').value.trim();
+  if(!date){ showToast('Lütfen bir tarih girin.', true); return; }
+
+  const payload = {
+    tarih: date,
+    fiyat: $('#fPrice').value.trim(),
+    puan: $('#fScore').value,
+    yorum: $('#fComment').value.trim(),
+    telegram: $('#fTelegram').value.trim() || null,
+  };
+
+  if(editingEntryId){
+    const idx = stock.entries.findIndex(x=>x.id === editingEntryId);
+    if(idx > -1){
+      stock.entries[idx] = { ...stock.entries[idx], ...payload };
+    }
+  } else {
+    const newId = `${stock.id}_e${Date.now()}`;
+    stock.entries.unshift({ id: newId, ...payload });
+  }
+
+  $('#entryOverlay').hidden = true;
+  renderSidebar($('#searchInput').value);
+  renderMain();
+  await persist();
+  showToast('Kayıt kaydedildi.');
+});
+
+$('#fDelete').addEventListener('click', async ()=>{
+  if(!editingEntryId) return;
+  deleteEntry(editingStockId, editingEntryId, true);
+  $('#entryOverlay').hidden = true;
+});
+
+function deleteEntry(stockId, entryId, skipConfirm){
+  if(!skipConfirm && !confirm('Bu kayıt silinsin mi?')) return;
+  const found = findStock(stockId);
+  if(!found) return;
+  found.stock.entries = found.stock.entries.filter(x=>x.id !== entryId);
+  renderSidebar($('#searchInput').value);
+  renderMain();
+  persist().then(()=> showToast('Kayıt silindi.'));
+}
+
+/* ---------------- Persistence (JSONBlob shared storage) ---------------- */
+
+const BLOB_ID = "__BLOB_ID__";
+const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+let remoteAvailable = false;
+
+async function loadRemote(){
+  try{
+    const res = await fetch(BLOB_URL, { headers: { 'Accept': 'application/json' } });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    remoteAvailable = true;
+    return data;
+  }catch(err){
+    console.warn('loadRemote failed', err);
+    remoteAvailable = false;
+    return null;
+  }
+}
+
+async function persist(){
+  saveLocalOverride(appData);
+  try{
+    const res = await fetch(BLOB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(appData)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    remoteAvailable = true;
+  }catch(err){
+    console.warn('persist failed', err);
+    showToast('Değişiklik bu cihazda kaydedildi; sunucuya ulaşılamadı, internet bağlantınızı kontrol edin.', true);
+  }
+}
+
+/* ---------------- Toast ---------------- */
+let toastTimer = null;
+function showToast(msg, isErr){
+  let t = $('#toastEl');
+  if(t) t.remove();
+  t = document.createElement('div');
+  t.id = 'toastEl';
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.remove(), 3200);
+}
+
+/* ---------------- Search ---------------- */
+$('#searchInput').addEventListener('input', (ev)=> renderSidebar(ev.target.value));
+
+const autoTvCheckbox = document.getElementById('autoTvToggle');
+if(autoTvCheckbox){
+  autoTvCheckbox.checked = autoOpenTv;
+  autoTvCheckbox.addEventListener('change', ()=>{
+    autoOpenTv = autoTvCheckbox.checked;
+    try{ localStorage.setItem('seans_defteri_auto_tv', autoOpenTv ? '1' : '0'); }catch(e){}
+  });
+}
+
+$('#sortBySector').addEventListener('click', ()=>{
+  sortMode = 'sector';
+  $('#sortBySector').classList.add('active');
+  $('#sortByScore').classList.remove('active');
+  renderSidebar($('#searchInput').value);
+});
+$('#sortByScore').addEventListener('click', ()=>{
+  sortMode = 'score';
+  $('#sortByScore').classList.add('active');
+  $('#sortBySector').classList.remove('active');
+  renderSidebar($('#searchInput').value);
+});
+
+/* ---------------- Init ---------------- */
+async function init(){
+  const localOverride = loadLocalOverride();
+  appData = localOverride || SEED_DATA;
+  renderSidebar('');
+  renderMain();
+  updateLockUi();
+
+  const remote = await loadRemote();
+  if(remote){
+    appData = remote;
+    saveLocalOverride(appData);
+    selectedStockId = null;
+    renderSidebar($('#searchInput').value);
+    renderMain();
+  } else if(BLOB_ID === '__BLOB_ID__'){
+    showToast('Kurulum tamamlanmadı: BLOB_ID henüz ayarlanmamış.', true);
+  } else {
+    showToast('Sunucuya ulaşılamadı, yerel/örnek veriler gösteriliyor.', true);
+  }
+}
+init();
+</script>
+</body>
+</html>
